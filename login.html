@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Kindred</title>
+
+		<!-- Bootstrap core CSS -->
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="./assets/css/styles.css">
+	</head>
+	<body class="bg-dark">
+        <!-- Header -->
+		<header>
+            <nav class="navbar sticky-top navbar-dark bg-dark">
+                <div class="container bg-dark">
+                    <a class="navbar-brand kindred-logo" href=""><img height="20rem" src="https://kindredsales.com/wp-content/uploads/2021/08/Kindred-Logo-for-Google-Forms-1.png" /></a>
+
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ml-auto overflow-auto" id="menu_container">
+                            <li class="nav-item" style="display:none;"><a class="nav-link nav_add_new" href="#">Add New Rep / Rep Summer</a></li>
+                            <li class="nav-item"><a class="nav-link nav_daily_quiz" href="#">Daily Mini Quiz</a></li>
+                            <li class="nav-item"><a class="nav-link nav_tech_test" href="#">Tech Test</a></li>
+                            <li class="nav-item"><a class="nav-link nav_submit_notice" href="#">Submit 2 Weeks Notice</a></li>
+                            <li class="nav-item"><a class="nav-link nav_tech_manual" href="#">Tech Manual</a></li>
+                            <li class="nav-item"><a class="nav-link nav_update_password" href="#">PestRoutes PW Recovery</a></li>
+                            <li class="nav-item"><a class="nav-link" href="https://portal.kindredsales.com/techtasks">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Body -->
+		<div class="container bg-dark" id="login">
+			<div class="row">
+				<div class="col">
+                    <button type="button" class="btn btn-secondary btn-lg btn-block" disabled>Please Login to your account</button>
+                </div>
+			</div>
+			<div class="row">
+				<div class="col">
+                    <input type="text" class="form-control" placeholder="Username" id="login_user" aria-label="Username" required v-model='user.name'  />
+                </div>
+			</div>
+			<div class="row">
+				<div class="col">
+                    <input type="text" class="form-control" placeholder="Password" id="login_pass" aria-label="Password" required v-model='user.password'  />
+                </div>
+			</div>
+			<div class="row">
+				<div class="col">
+                    <button type="button" @click="requestLogin" class="btn btn-primary btn-block" id="login_button">LOGIN</button>
+                </div>
+			</div>
+
+			<div id="info"></div>
+		</div>
+
+        <div class="container text-center pt-3" id="mpu">
+			<div class="row">
+				<div class="col-sm"><a href="" type="button" class="btn btn-primary exit_external">Back</a></div>
+			</div>
+		</div>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"></script>
+
+        <script type="text/javascript">
+            var app = new Vue({
+                el: '#login',
+                data () {
+                    return { 
+                        app_id:"appy2wb0mLlSBqFjj",
+                        app_key:"keyM7E4FM1zHFbQsw",
+                        user: {
+                            name:'Levi Leatham',
+                            password:'2528'
+                        }
+                    }
+                },
+                mounted: function(){
+                    //this.loadItems(); 
+                },
+                methods: {
+                    requestLogin: function(){  
+
+                        var self = this;
+                        var tableName = "Employee";
+                        
+                        axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}?filterByFormula=${encodeURIComponent("{Name} = '"+ this.user.name +"'")}`,
+                            { 
+                                params: { view: "Grid view" },
+                                headers: { Authorization: "Bearer "+this.app_key } 
+                            }
+                        ).then(function(response){
+                            
+                            var data = response.data.records;
+                            var userFound = null;
+
+                            data.forEach(function(record){
+                                console.log(record.fields['Super Admin'], record.fields['Pincode']);
+                                if(record.fields['Super Admin'] == "TRUE" && record.fields['Pincode'] == self.user.password){
+                                    alert("Login successful!");
+                                    localStorage.setItem("user", JSON.stringify(record));
+                                    userFound = record;
+
+                                    window.location.href= "/";
+
+                                    return false;
+                                }
+                            })
+
+                            if(userFound == null){
+                                alert("User not found");
+                            }
+
+                        }).catch(function(error){
+                            console.log(error)
+                        })
+                    },
+                    loadItems: function(){
+                        
+                        // Init variables
+                        var self = this
+                        var app_id = "appJDHArvXK51eoBY";
+                        var app_key = "keyM7E4FM1zHFbQsw";
+                        var tableName = "Videos";
+                        this.items = []
+                        axios.get(
+                            "https://api.airtable.com/v0/"+ app_id +"/"+ tableName,
+                            { 
+                                params: { view: "Grid view" },
+                                headers: { Authorization: "Bearer "+app_key } 
+                            }
+                        ).then(function(response){
+                            
+                            self.allRecords = response.data.records;
+                            self.items = response.data.records;
+                            response.data.records.forEach(x => {
+    
+                                x.fields.Tags.forEach(element => {
+                                    if(self.tags.indexOf(element) < 0){
+                                        self.tags.push(element);
+                                    }
+                                });
+                            });
+    
+                            self.tags.sort();
+    
+                        }).catch(function(error){
+                            console.log(error)
+                        })
+                    },
+                    filterTag: function(tag){
+                        // Filtering Logic
+                        if(this.selectedTag.indexOf(tag) == -1){
+                            this.selectedTag.push(tag);
+                        }
+                        else {
+                            const index = this.selectedTag.indexOf(tag);
+                            this.selectedTag.splice(index, 1);
+                        }
+    
+                        if(this.selectedTag.length == 0){
+                            this.items = this.allRecords;
+                            return false;
+                        }
+    
+    
+                        this.items = this.allRecords.filter(x => {
+                            var matched = false;
+    
+                            for(var i = 0; i < this.selectedTag.length; i++) {
+    
+                                if(x.fields.Tags.indexOf(this.selectedTag[i]) >= 0){
+                                    matched = true;
+                                }
+                                else {
+                                    matched = false;
+                                    break;
+                                }
+                            };
+    
+    
+                            return matched;
+                        });
+                    }
+                }
+            })
+        </script>
+	</body>
+</html>
