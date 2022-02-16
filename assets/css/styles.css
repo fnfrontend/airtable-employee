@@ -63,6 +63,8 @@ a, h5 {color: white;}
 .resetPasswordTitle{font-size: 25px;}
 #resetPasswordForm{padding: 20px;margin: 20px;} */
 
+.btn {margin: 5px;text-align: center;display: inline-block;text-overflow: ellipsis;}
+
 .table th {font-size:15px;}
 .table td {font-size:13px; vertical-align: middle;}
 .table td .btn{font-size:13px;}

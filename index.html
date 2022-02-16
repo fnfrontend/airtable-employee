@@ -41,6 +41,10 @@
     <div class="container pt-4" id="app">
         
 
+        <div class="loading text-center py-5" v-show="allTeams.length == 0">
+            <img src="./assets/images/loading.gif" alt="Loading..." height="50">
+        </div>
+
         <div class="mb-5" v-for="(team, index) in allTeams">
             <h4 class="text-white">{{team}}</h4>
 
@@ -56,6 +60,7 @@
                     <tr class="" v-for="(emp, i) in allEmployees[team]">
                         <td class="px-2">{{emp.fields['Name']}}</td>
                         <td class="px-2 ">{{emp.fields['Email']}}</td>
+                        <!-- <td class="px-2 text-center"><a v-show="team == 'Techs'" v-bind:href="emp.fields['Training App']['url']" target="_blank" class="btn btn-sm btn-secondary">Training App</a></td> -->
                         <td class="px-2 text-center"><a v-show="team == 'Techs'" v-bind:href="emp.fields['Training App']['url']" target="_blank" class="btn btn-sm btn-secondary">Training App</a></td>
                     </tr>
                 </tbody>
@@ -80,6 +85,9 @@
                 }
             },
             mounted: function(){
+                if(localStorage.getItem("user") == null || localStorage.getItem("user") == undefined){
+                    window.location.href = "/login.html"
+                }
                 this.loadAllEmployees(); 
             },
             methods: {

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kindred</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="./assets/css/styles.css">
+  
+</head>
+
+<body class="bg-dark">
+    <!-- Header -->
+    <header>
+        <nav class="navbar sticky-top navbar-dark bg-dark">
+            <div class="container bg-dark">
+                <a class="navbar-brand kindred-logo" href=""><img height="20rem" src="https://kindredsales.com/wp-content/uploads/2021/08/Kindred-Logo-for-Google-Forms-1.png" /></a>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto overflow-auto" id="menu_container">
+                        <li class="nav-item" style="display:none;"><a class="nav-link nav_add_new" href="#">Add New Rep / Rep Summer</a></li>
+                        <li class="nav-item"><a class="nav-link nav_daily_quiz" href="#">Daily Mini Quiz</a></li>
+                        <li class="nav-item"><a class="nav-link nav_tech_test" href="#">Tech Test</a></li>
+                        <li class="nav-item"><a class="nav-link nav_submit_notice" href="#">Submit 2 Weeks Notice</a></li>
+                        <li class="nav-item"><a class="nav-link nav_tech_manual" href="#">Tech Manual</a></li>
+                        <li class="nav-item"><a class="nav-link nav_update_password" href="#">PestRoutes PW Recovery</a></li>
+                        <li class="nav-item"><a class="nav-link" href="https://portal.kindredsales.com/techtasks">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+                 
+    <div class="container pt-4" id="app">
+        
+        <div class="loading text-center py-5" v-show="allTasks.length == 0">
+            <img src="./assets/images/loading.gif" alt="Loading..." height="50">
+        </div>
+
+        <div id="menu"></div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"></script>
+    
+
+    <script type="text/javascript">
+        var app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    app_id:"appy2wb0mLlSBqFjj",
+                    app_key:"keyM7E4FM1zHFbQsw",
+                    allEmployees: [],
+                    allTasks: []
+                }
+            },
+            mounted: function(){
+                if(localStorage.getItem("user") == null || localStorage.getItem("user") == undefined){
+                    window.location.href = "/login.html"
+                }
+                this.getAllTasks(); 
+            },
+            methods: {
+                getAllTasks: function(){
+                    
+                    // Init variables
+                    var self = this
+                    var tableName = "Data Input";
+                    
+                    axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
+                    { 
+                        params: { view: "Grid view" },
+                        headers: { Authorization: "Bearer "+this.app_key } 
+                    }).then(function(response){
+                        
+                        var data = response.data.records;
+                        self.allTasks = data;
+                        self.loadPage();
+                        //console.log(data);
+
+                    }).catch(function(error){
+                        console.log(error);
+                    })
+                },
+                getAllEmployees: function(){
+                    
+                    // Init variables
+                    var self = this
+                    var tableName = "Employee";
+                    
+                    axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
+                    { 
+                        params: { view: "Grid view" },
+                        headers: { Authorization: "Bearer "+this.app_key } 
+                    }).then(function(response){
+                        
+                        var data = response.data.records;
+                        self.allEmployees = data;
+                        self.loadPage();
+                        //console.log(data);
+
+                    }).catch(function(error){
+                        console.log(error);
+                    })
+                },
+                organizeTasks: function(allTasks) {
+                    let taskTypes = []
+                    let taskTypeValues = []
+                    allTasks.forEach(tasks => {
+                        let currentTaskType = tasks["fields"]["Task Type (TEXT)"] ? tasks["fields"]["Task Type (TEXT)"] : "No Task Type Specified"
+                        let taskTypesInd = taskTypes.indexOf(currentTaskType)
+                        if(taskTypesInd == -1){
+                            taskTypes.push(currentTaskType)
+                            taskTypeValues.push([])
+                            taskTypesInd = taskTypeValues.length - 1
+                        }
+                        taskTypeValues[taskTypesInd].push(tasks)
+                    });
+
+                    return {keys:taskTypes,values:taskTypeValues }
+                },
+                loadPage: function() {
+                    if(this.allEmployees.length == 0 && this.allTasks == 0){
+                        return false;
+                    }
+
+                    let employee = this.allEmployees;
+                    let tasks = this.allTasks;
+
+                    console.log(tasks);
+                    let {keys, values} = this.organizeTasks(tasks)
+                    let htmlString = ""
+                    keys.forEach((key,keyInd) => {
+                        htmlString += `<div class="row"><div class="col"><button type="button" class="btn btn-[key_${keyInd}_button_color] btn-lg btn-block header" disabled>${key}</button></div></div>`
+                        let completedCount = 0
+                        let totalTasks = values[keyInd].length
+
+                        values[keyInd].sort((a,b) => {
+                            if(a["fields"]["Task Start Date"] < b["fields"]["Task Start Date"]) return 1
+                            if(a["fields"]["Task Start Date"] > b["fields"]["Task Start Date"]) return -1
+                            return 0
+                        })
+
+                        values[keyInd].forEach((record,recordInd) => {
+                            let taskManagerCheck = record["fields"]["Completed Task (Task Manager)"] ? record["fields"]["Completed Task (Task Manager)"] : false;
+                            let employeeCheck = record["fields"]["Task Completed (Employee Checkbox)"] ? record["fields"]["Task Completed (Employee Checkbox)"] : false;
+                            let incompleteCheck = record["fields"]["Incomplete Task"] ? record["fields"]["Incomplete Task"] : false;
+                            
+                            let completedByMoreThanOne = ("Task Completed By" in record["fields"]) ? record["fields"]["Task Completed By"].length > 1 : false;
+                            
+                            
+
+                            let buttonColor = "";
+
+                            if(completedByMoreThanOne) {
+                                if(!employeeCheck && !incompleteCheck && !taskManagerCheck) buttonColor = "purple"
+                                else if(incompleteCheck && !taskManagerCheck) buttonColor = "maroon"
+                                else {
+                                    if(!taskManagerCheck && !employeeCheck && !incompleteCheck) buttonColor = "primary"
+                                    else if(taskManagerCheck && employeeCheck) buttonColor = "success"
+                                    else if(employeeCheck && !taskManagerCheck) buttonColor = "warning"
+                                    else if(incompleteCheck && !employeeCheck) buttonColor = "danger"
+                                }
+                            } else {
+                                if(!taskManagerCheck && !employeeCheck && !incompleteCheck) buttonColor = "primary"
+                                else if(taskManagerCheck && employeeCheck) buttonColor = "success"
+                                else if(employeeCheck && !taskManagerCheck) buttonColor = "warning"
+                                else if(incompleteCheck && !employeeCheck) buttonColor = "danger"
+                            }
+
+                            if(taskManagerCheck && employeeCheck) completedCount++
+
+                            let elemId = keyInd+"_"+recordInd
+                            let buttonText = "Task Start Date" in record["fields"] ? record["fields"]["Task Start Date"].toString() : ""
+
+                            let truck = "Name (from Truck Number)" in record["fields"] ? Array.isArray(record["fields"]["Name (from Truck Number)"]) ? record["fields"]["Name (from Truck Number)"][0] : record["fields"]["Name (from Truck Number)"] : false
+                            let apartment = "Apartment Name" in record["fields"] ? record["fields"]["Apartment Name"] : false
+                            let item = "Item (Text)" in record["fields"] ? record["fields"]["Item (Text)"] : false
+                            let purchaseFromCompany = "Purchased From Company" in record["fields"] ? record["fields"]["Purchased From Company"] : false
+                            let assignedTo = "Task Assigned To/Caused By" in record["fields"] ? String(record["fields"]["Task Assigned To/Caused By"]) : false
+                            let assignedToText = "Task Assigned To (TEXT)" in record["fields"] ? record["fields"]["Task Assigned To (TEXT)"].split("-")[0].trim() : false
+                            let completedBy = "Task Completed By" in record["fields"] ? String(record["fields"]["Task Completed By"]) : false
+
+                            let truckDisplayed = truck ? truck.split("-")[0].trim()+" "+truck.split("-")[1].trim() : false
+                            let itemDisplayed = item ? item.split("-")[0].trim() : false
+
+                            let buttonTexts = []
+                            if(truck) buttonTexts.push(truckDisplayed)
+                            if(apartment) buttonTexts.push(apartment)
+                            if(item) buttonTexts.push(itemDisplayed)
+                            if(purchaseFromCompany) buttonTexts.push(purchaseFromCompany)
+                            if(assignedTo && completedBy) if(assignedTo != completedBy) buttonTexts.push(assignedToText)
+
+                            if(record.fields["Task Type (TEXT)"] == "Purchase Request") buttonTexts.push(record.fields["Item Qty"])
+                            if(record.fields["Task Type (TEXT)"] == "Missing Purchase Upload") buttonTexts.push("$"+record.fields["Item Total (For MPU)"])
+                            if(record.fields["Task Type (TEXT)"] == "Reprimand") buttonTexts.push(record.fields["Write Ups - Text"])
+
+                            
+
+                            let buttonTextDate = new Date(buttonText)
+                            let textMonth = (buttonTextDate.getMonth() + 1) > 9 ? (buttonTextDate.getMonth() + 1) : "0" + (buttonTextDate.getMonth() + 1)
+                            let textDate = buttonTextDate.getDate() > 9 ? buttonTextDate.getDate() : "0" + buttonTextDate.getDate()
+                            let textYear = buttonTextDate.getFullYear()
+
+                            let elemHref = record["fields"]["Update Task"]["url"];
+                            let task = record;
+                            let updateType = this.updateExternally(task) ? "to-external" : "task_button";
+
+
+                            if (record.fields["Task Type (TEXT)"] === 'Missing Purchase Upload' && !record["fields"]["Task Completed (Employee Checkbox)"] ) {
+                                updateType = 'mpu_button'
+                            }
+
+                            if (record.fields["Task Type (TEXT)"] == "Upload VTR to employee record"  || record.fields["Task Type (TEXT)"] == "SPC 003") {
+                                updateType = `${updateType} vtr_spc`
+                            }
+
+                            let buttonTextDisplayed = `${buttonTexts.join(" - ")} ${buttonTexts.length > 0 ? " - " : ""} ${textMonth}/${textDate}/${textYear}` // MM/DD/YYYY
+
+                            if ((recordInd + 1) % 2 == 0) {
+                                htmlString += `<div class="col-sm">
+                                        <button type="button" class="btn btn-sm btn-${buttonColor} btn-block ${updateType}" data-toggle="tooltip" href="${elemHref}" recordId=${record.id} id="${elemId}">${buttonTextDisplayed}</button>
+                                    </div>
+                                </div>`;
+                            } else {
+                                if (recordInd == values[keyInd].length - 1) {
+                                    htmlString += `<div class="row">
+                                        <div class="col-sm">
+                                            <button type="button" class="btn btn-sm btn-${buttonColor} btn-block ${updateType}" data-toggle="tooltip" href="${elemHref}" recordId=${record.id} id="${elemId}">${buttonTextDisplayed}</button>
+                                        </div>
+                                    </div>`;
+                                } else {
+                                    htmlString += `<div class="row"><div class="col-sm">
+                                        <button type="button" class="btn btn-sm btn-${buttonColor} btn-block ${updateType}" data-toggle="tooltip" href="${elemHref}" recordId=${record.id} id="${elemId}">${buttonTextDisplayed}</button>
+                                    </div>`
+                                }
+                            }
+                        })
+
+                        let headerColor = "light"
+                        if(completedCount == totalTasks) headerColor = "success"
+                        htmlString = htmlString.replace(`[key_${keyInd}_button_color]`,headerColor)
+                    })
+                    
+                    $("#menu").html(htmlString)
+                },
+                updateExternally: function(task) {
+                    
+                    let taskCategory = task["fields"]["Task Category (from Task Type)"] ? task["fields"]["Task Category (from Task Type)"][0] : ""
+                    
+                    return(
+                        taskCategory == "Inventory Task" ||
+                        taskCategory == "Training Checklist" ||
+                        (("Task Type (TEXT)" in task["fields"] ? task["fields"]["Task Type (TEXT)"].indexOf("Receive") > -1 : false) && taskCategory == "Termination") ||
+                        "Brillium Test ID" in task["fields"] ||
+                        task["fields"]["Task Type (TEXT)"] == "Purchase Upload" ||
+                        ("Task Type (TEXT)" in task["fields"] ? task["fields"]["Task Type (TEXT)"].indexOf("Background Check") > -1 : false) ||
+                        task["fields"]["Task Type (TEXT)"] == "Missing Purchase Upload" ||
+                        task["fields"]["Task Type (TEXT)"] == "Deduction Appeal" ||
+                        task["fields"]["Task Type (TEXT)"] == "Assign Inventory and Receipt Signed" ||
+                        ("Task Type (TEXT)" in task["fields"] ? task["fields"]["Task Type (TEXT)"].indexOf("Retrieve Ipad and shirts") > -1 : false) ||
+                        task["fields"]["Task Type (TEXT)"] == "Upload Drug Test Results" ||
+                        task["fields"]["Task Type (TEXT)"] == "Assign Rep to Apartment" ||
+                        task["fields"]["Task Type (TEXT)"] == "Save Customer" ||
+                        task["fields"]["Task Type (TEXT)"] == "Reprimand" ||
+                        ("Task Type Sales" in task["fields"] ? task["fields"]["Task Type Sales"] == "Upload Weekly Sales Video" : false)
+                    )
+                },
+                loadTask: function(task) {
+                    if(task["Task Type (TEXT)"].indexOf("Shadow Review") > -1) $("#customername_input").show()
+                    $("#form_proofrequired").val(task["Proof of Completion Required? (from Task Type)"] == "true")
+                        let videoLinks = task["Example Video"] ? (Array.isArray(task["Example Video"]) ? task["Example Video"] : false) : false
+                        let notes = "Notes" in task ? task["Notes"].toString() : "No Notes"
+                        let vtr_spc = task['Send VTR/SPC 003'] ? task['Send VTR/SPC 003'] : null;
+                        let proofOfCompletion = "Proof of Completion" in task ? task["Proof of Completion"] : false
+                        let proofOfCompletionHtml = `<div class="col"><p><i>No Proof Of Completion</i></p>`
+
+                        let imgExts = ["jpg","jpeg","jpe","jif","jfif","jfi","png","gif","webp","tiff","tif","psd","raw","arw","cr2","nrw","k25","bmp","dib","heif","heic,.ind","indd","indt,.jp2","j2k","jpf","jpx","jpm","mj2"].map(x => x.toLowerCase())
+                        let vidExts = ["WEBM","MPG","MP2","MPEG","MPE","MPV","OGG","MP4","M4P","M4V","AVI","WMV","MOV","QT","FLV","SWF","AVCHD"].map(x => x.toLowerCase())
+                        let audExts = ["AAC","WMA","WAV","MP4","MP3","FLAC","M4A"].map(x => x.toLowerCase())
+                        if (vtr_spc.url) {
+                            $('.send_vtr_spc').show();
+                            $('#send_vtr_spc').on('click', () => {
+                                window.open(vtr_spc.url)
+                            })
+                        }
+
+                        if(proofOfCompletion){
+                            proofOfCompletionHtml = proofOfCompletion.map(proof => {
+                            // There is a bug here, proof.type is undefined after uploading
+                            let isImage = false
+                            let isVideo = false
+                            let isAudio = false
+                            if(proof.type){
+                                if(proof.type.indexOf("image/") > -1 ) isImage = true
+                                else if(proof.type.indexOf("video/") > -1) isVideo = true
+                                else if(proof.type.indexOf("audio/") > -1) isAudio = true
+                            } else {
+                                let extension = proof.filename.split(".")[1].toLowerCase()
+                                if(imgExts.indexOf(extension) > -1) isImage = true
+                                else if(vidExts.indexOf(extension) > -1) isVideo = true
+                                else if(audExts.indexOf(extension) > -1) isAudio = true
+                            }
+
+                            if(isImage)
+                                return `<div class="p-2"><a href="${proof.url}" target="_blank"><img width="200" height="200" style="max-width: 200px; max-height: 200px" src="${proof.url}" class="img-thumbnail" alt="Responsive image"><p>${proof.filename}</p></a></div>`
+                            else if(isVideo)
+                                return `<div class="p-2"><video width="200" height="200" controls>
+                                            <source src="${proof.url}" type="${proof.type}">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                        <p>${proof.filename}</p>
+                                        </div>`
+                            else if(isAudio)
+                                return `<div class="p-2"><audio controls>
+                                            <source src="${proof.url}" type="${proof.type}">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                        <p>${proof.filename}</p>
+                                        </div>`
+                            else
+                                return `<div class="p-2" style="position:relative;text-align:center;"><img width="200" height="200" style="max-width: 200px; max-height: 200px" src="http://35.202.26.112/uploads/blank.png" class="img-thumbnail" alt="Responsive image"><div class="centered"><a href="${proof.url}" target="_blank">${proof.filename} [${proof.type}]</a></div></div>`
+                            })
+                        }
+
+                        let videoHtml = `<div class="col-sm"><p class="sm">No video Url Found</p></div>`
+
+                        if(videoLinks){
+                            videoHtml = ""
+                            videoLinks.forEach(vid => {
+                                if(vid.type == "audio/mpeg"){
+                                    videoHtml += `
+                                        <audio controls>
+                                        <source src="${vid.url}" type="audio/mpeg">
+                                    </audio>`
+                                } else {
+                                    videoHtml += `
+                                    <video width="320" height="240" controls>
+                                        <source src="${vid.url}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>`
+                                }
+                            })
+                        }
+
+                        let instructions =  "No Instructions"
+                        if("Instructions" in task){
+                                instructions = task["Instructions"].toString().replace(/\\n/g,"<br>").replace(/\\t/g,"   ")
+                                instructions = instructions.substr(1, instructions.length-2)
+                        }
+
+                        $("#task_line_2").text(task["Task Type (TEXT)"])
+                        $("#task_line_3").html(videoHtml)
+                        $("#task_line_4").html(instructions)
+                        // $("#task_line_5").html("Notes: <i>"+notes+"</i>")
+                        currentNotes = notes.toString()
+                        $("#form_notes").val(notes)
+                        $("#form_recid").attr("value", task["Record Id"])
+                        $("#form_tasktype").attr("value", task["Task Type (TEXT)"])
+                        $("#task_line_6").html(proofOfCompletionHtml)
+                        // $("#task_line_7").html(googleDriveLink)
+
+                        // $("#task_line_7").attr("href",task["Update Task"]["url"])
+                        // let updateFormScriptUrl = `https://api.miniextensions.com/v1/iframe-embed/H5hDBA05pcCmGKRFQQEz.js?absoluteShareUrl=https%3A%2F%2Fapp.miniextensions.com%2Fform%2FH5hDBA05pcCmGKRFQQEz%2F${task["Record Id"]}%3Fprefill_Task%2520Completed%2520(Employee%2520Checkbox)%3Dtrue`
+                        // $.getScript(updateFormScriptUrl)
+
+                        $("#menu").hide()
+                        $("#task").show()
+				}
+                
+            }
+        })
+    </script>
+</body>
+</html>
