@@ -31,7 +31,7 @@
                         <li class="nav-item"><a class="nav-link nav_submit_notice" href="#">Submit 2 Weeks Notice</a></li>
                         <li class="nav-item"><a class="nav-link nav_tech_manual" href="#">Tech Manual</a></li>
                         <li class="nav-item"><a class="nav-link nav_update_password" href="#">PestRoutes PW Recovery</a></li>
-                        <li class="nav-item"><a class="nav-link" href="https://portal.kindredsales.com/techtasks">Logout</a></li>
+                        <li class="nav-item"><a class="nav-link" href="login.html">Logout</a></li>
                     </ul>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                         <td class="px-2">{{emp.fields['Name']}}</td>
                         <td class="px-2 ">{{emp.fields['Email']}}</td>
                         <!-- <td class="px-2 text-center"><a v-show="team == 'Techs'" v-bind:href="emp.fields['Training App']['url']" target="_blank" class="btn btn-sm btn-secondary">Training App</a></td> -->
-                        <td class="px-2 text-center"><a v-show="team == 'Techs'" v-bind:href="emp.fields['Training App']['url']" target="_blank" class="btn btn-sm btn-secondary">Training App</a></td>
+                        <td class="px-2 text-center"><a v-show="team == 'Techs'" href="tasks.html"  class="btn btn-sm btn-secondary">Training App</a></td>
                     </tr>
                 </tbody>
             </table>
