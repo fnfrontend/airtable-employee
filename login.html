@@ -45,7 +45,7 @@
 			</div>
 			<div class="row">
 				<div class="col">
-                    <input type="text" class="form-control" placeholder="Username" id="login_user" aria-label="Username" required v-model='user.name'  />
+                    <input type="text" class="form-control" placeholder="Email" id="login_user" aria-label="Email" required v-model='user.name'  />
                 </div>
 			</div>
 			<div class="row">
@@ -80,7 +80,7 @@
                         app_id:"appy2wb0mLlSBqFjj",
                         app_key:"keyM7E4FM1zHFbQsw",
                         user: {
-                            name:'Levi Leatham',
+                            name:'levi@kindredpest.com',
                             password:'2528'
                         }
                     }
@@ -95,7 +95,7 @@
                         var self = this;
                         var tableName = "Employee";
                         
-                        axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}?filterByFormula=${encodeURIComponent("{Name} = '"+ this.user.name +"'")}`,
+                        axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}?filterByFormula=${encodeURIComponent("{Email} = '"+ this.user.name +"'")}`,
                             { 
                                 params: { view: "Grid view" },
                                 headers: { Authorization: "Bearer "+this.app_key } 
@@ -112,7 +112,7 @@
                                     localStorage.setItem("user", JSON.stringify(record));
                                     userFound = record;
 
-                                    window.location.href= "/";
+                                    window.location.href= "index.html";
 
                                     return false;
                                 }
