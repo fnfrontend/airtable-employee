@@ -45,6 +45,91 @@
         </div>
 
         <div id="menu"></div>
+        <div class="container bg-dark pt-3 text-center" id="external">
+			<div class="row">
+				<div class="col-sm"><a href="" type="button" class="btn btn-primary exit_external">Back</a></div>
+			</div>
+			<div id="iframe">
+				<iframe id="site" src="" frameborder="0" allowfullscreen class="embed-responsive-item embed-responsive embed-responsive-1by1" height="460"></iframe>
+			</div>
+		</div>
+
+        <div class="container bg-dark site-page" id="task">
+			<div class="row">
+				<div class="col-sm"><a href="" type="button" class="btn btn-primary" id="close_task">Back</a></div>
+			</div>
+			<div class="row">
+				<div class="col-sm"><h1 id="task_line_2"></h1></div>
+			</div>
+
+			<div class="row">
+				<div class="col-sm">
+					<div id="task_line_3"></div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-sm"><p id="task_line_4"></p></div>
+			</div>
+
+			<form id="update_form" action="https://portal.kindredsales.com/techtasks/upload" method="post" enctype="multipart/form-data">
+      <!-- <form id="update_form" action="http://localhost:8807/techtasks/upload" method="post" enctype="multipart/form-data"> -->
+
+				<input type="hidden" name="origin" id="form_origin" value="" />
+				<input type="hidden" name="recid" id="form_recid" value="" />
+				<input type="hidden" name="tasktype" id="form_tasktype" value="" />
+				<input type="hidden" name="proofrequired" id="form_proofrequired" value="" />
+
+				<div class="row text-center">
+					<div class="col">
+						<label
+							><h5>Proof Of Completion:</h5>
+							<span id="task_line_7"></span>
+						</label>
+					</div>
+				</div>
+
+				<div class="row text-center">
+					<div class="d-flex flex-wrap" id="task_line_6"></div>
+				</div>
+
+				<div class="row text-center">
+					<div class="col">
+						<input type="file" name="upload" id="form_upload" multiple/>
+					</div>
+				</div>
+                <br>
+        
+				<div class="row text-center" id="customername_input">
+					<div class="col">
+						<label><h5>Customer Name:</h5></label>
+						<input type="text" class="form-control" name="customername" id="form_customername" placeholder="Customer Name"/>
+					</div>
+				</div>
+                <br>
+
+				<div class="row text-center">
+					<div class="col">
+						<label><h5>Notes:</h5></label>
+						<textarea class="form-control rounded-0" name="notes" id="form_notes" rows="3"></textarea>
+					</div>
+				</div>
+                <br>
+
+				<div class="row text-center send_vtr_spc" style="display: none">
+					<div class="col">
+						<input type="button" id="send_vtr_spc" value="Send VTR/SPC 003" class="btn btn-block btn-success" />
+					</div>
+				</div>
+
+				<div class="row text-center">
+					<div class="col">
+						<input type="submit" id="form_submit" value="Update" class="btn btn-block btn-success" />
+                        <a href="Javascript:void(0)" id="deleteTask" class="btn btn-block btn-danger">Delete</a>
+					</div>
+				</div>
+			</form>
+		</div>
 
     </div>
 
@@ -139,7 +224,6 @@
                     let employee = this.allEmployees;
                     let tasks = this.allTasks;
 
-                    console.log(tasks);
                     let {keys, values} = this.organizeTasks(tasks)
                     let htmlString = ""
                     keys.forEach((key,keyInd) => {
@@ -254,7 +338,8 @@
                         htmlString = htmlString.replace(`[key_${keyInd}_button_color]`,headerColor)
                     })
                     
-                    $("#menu").html(htmlString)
+                    $("#menu").html(htmlString);
+                    this.clickEvents();
                 },
                 updateExternally: function(task) {
                     
@@ -279,106 +364,171 @@
                     )
                 },
                 loadTask: function(task) {
-                    if(task["Task Type (TEXT)"].indexOf("Shadow Review") > -1) $("#customername_input").show()
+                    if("Task Type (TEXT)" in task){
+                        if(task["Task Type (TEXT)"].indexOf("Shadow Review") > -1){
+                            $("#customername_input").show()
+                        }
+                    }
+
                     $("#form_proofrequired").val(task["Proof of Completion Required? (from Task Type)"] == "true")
-                        let videoLinks = task["Example Video"] ? (Array.isArray(task["Example Video"]) ? task["Example Video"] : false) : false
-                        let notes = "Notes" in task ? task["Notes"].toString() : "No Notes"
-                        let vtr_spc = task['Send VTR/SPC 003'] ? task['Send VTR/SPC 003'] : null;
-                        let proofOfCompletion = "Proof of Completion" in task ? task["Proof of Completion"] : false
-                        let proofOfCompletionHtml = `<div class="col"><p><i>No Proof Of Completion</i></p>`
+                    let videoLinks = task["Example Video"] ? (Array.isArray(task["Example Video"]) ? task["Example Video"] : false) : false
+                    let notes = "Notes" in task ? task["Notes"].toString() : "No Notes"
+                    let vtr_spc = task['Send VTR/SPC 003'] ? task['Send VTR/SPC 003'] : null;
+                    let proofOfCompletion = "Proof of Completion" in task ? task["Proof of Completion"] : false
+                    let proofOfCompletionHtml = `<div class="col"><p><i>No Proof Of Completion</i></p>`
 
-                        let imgExts = ["jpg","jpeg","jpe","jif","jfif","jfi","png","gif","webp","tiff","tif","psd","raw","arw","cr2","nrw","k25","bmp","dib","heif","heic,.ind","indd","indt,.jp2","j2k","jpf","jpx","jpm","mj2"].map(x => x.toLowerCase())
-                        let vidExts = ["WEBM","MPG","MP2","MPEG","MPE","MPV","OGG","MP4","M4P","M4V","AVI","WMV","MOV","QT","FLV","SWF","AVCHD"].map(x => x.toLowerCase())
-                        let audExts = ["AAC","WMA","WAV","MP4","MP3","FLAC","M4A"].map(x => x.toLowerCase())
-                        if (vtr_spc.url) {
-                            $('.send_vtr_spc').show();
-                            $('#send_vtr_spc').on('click', () => {
-                                window.open(vtr_spc.url)
-                            })
+                    let imgExts = ["jpg","jpeg","jpe","jif","jfif","jfi","png","gif","webp","tiff","tif","psd","raw","arw","cr2","nrw","k25","bmp","dib","heif","heic,.ind","indd","indt,.jp2","j2k","jpf","jpx","jpm","mj2"].map(x => x.toLowerCase())
+                    let vidExts = ["WEBM","MPG","MP2","MPEG","MPE","MPV","OGG","MP4","M4P","M4V","AVI","WMV","MOV","QT","FLV","SWF","AVCHD"].map(x => x.toLowerCase())
+                    let audExts = ["AAC","WMA","WAV","MP4","MP3","FLAC","M4A"].map(x => x.toLowerCase())
+                    if (vtr_spc.url) {
+                        $('.send_vtr_spc').show();
+                        $('#send_vtr_spc').on('click', () => {
+                            window.open(vtr_spc.url)
+                        })
+                    }
+
+                    if(proofOfCompletion){
+                        proofOfCompletionHtml = proofOfCompletion.map(proof => {
+                        // There is a bug here, proof.type is undefined after uploading
+                        let isImage = false
+                        let isVideo = false
+                        let isAudio = false
+                        if(proof.type){
+                            if(proof.type.indexOf("image/") > -1 ) isImage = true
+                            else if(proof.type.indexOf("video/") > -1) isVideo = true
+                            else if(proof.type.indexOf("audio/") > -1) isAudio = true
+                        } else {
+                            let extension = proof.filename.split(".")[1].toLowerCase()
+                            if(imgExts.indexOf(extension) > -1) isImage = true
+                            else if(vidExts.indexOf(extension) > -1) isVideo = true
+                            else if(audExts.indexOf(extension) > -1) isAudio = true
                         }
 
-                        if(proofOfCompletion){
-                            proofOfCompletionHtml = proofOfCompletion.map(proof => {
-                            // There is a bug here, proof.type is undefined after uploading
-                            let isImage = false
-                            let isVideo = false
-                            let isAudio = false
-                            if(proof.type){
-                                if(proof.type.indexOf("image/") > -1 ) isImage = true
-                                else if(proof.type.indexOf("video/") > -1) isVideo = true
-                                else if(proof.type.indexOf("audio/") > -1) isAudio = true
-                            } else {
-                                let extension = proof.filename.split(".")[1].toLowerCase()
-                                if(imgExts.indexOf(extension) > -1) isImage = true
-                                else if(vidExts.indexOf(extension) > -1) isVideo = true
-                                else if(audExts.indexOf(extension) > -1) isAudio = true
-                            }
-
-                            if(isImage)
-                                return `<div class="p-2"><a href="${proof.url}" target="_blank"><img width="200" height="200" style="max-width: 200px; max-height: 200px" src="${proof.url}" class="img-thumbnail" alt="Responsive image"><p>${proof.filename}</p></a></div>`
-                            else if(isVideo)
-                                return `<div class="p-2"><video width="200" height="200" controls>
-                                            <source src="${proof.url}" type="${proof.type}">
-                                            Your browser does not support the video tag.
-                                        </video>
-                                        <p>${proof.filename}</p>
-                                        </div>`
-                            else if(isAudio)
-                                return `<div class="p-2"><audio controls>
-                                            <source src="${proof.url}" type="${proof.type}">
-                                            Your browser does not support the audio element.
-                                        </audio>
-                                        <p>${proof.filename}</p>
-                                        </div>`
-                            else
-                                return `<div class="p-2" style="position:relative;text-align:center;"><img width="200" height="200" style="max-width: 200px; max-height: 200px" src="http://35.202.26.112/uploads/blank.png" class="img-thumbnail" alt="Responsive image"><div class="centered"><a href="${proof.url}" target="_blank">${proof.filename} [${proof.type}]</a></div></div>`
-                            })
-                        }
-
-                        let videoHtml = `<div class="col-sm"><p class="sm">No video Url Found</p></div>`
-
-                        if(videoLinks){
-                            videoHtml = ""
-                            videoLinks.forEach(vid => {
-                                if(vid.type == "audio/mpeg"){
-                                    videoHtml += `
-                                        <audio controls>
-                                        <source src="${vid.url}" type="audio/mpeg">
-                                    </audio>`
-                                } else {
-                                    videoHtml += `
-                                    <video width="320" height="240" controls>
-                                        <source src="${vid.url}" type="video/mp4">
+                        if(isImage)
+                            return `<div class="p-2"><a href="${proof.url}" target="_blank"><img width="200" height="200" style="max-width: 200px; max-height: 200px" src="${proof.url}" class="img-thumbnail" alt="Responsive image"><p>${proof.filename}</p></a></div>`
+                        else if(isVideo)
+                            return `<div class="p-2"><video width="200" height="200" controls>
+                                        <source src="${proof.url}" type="${proof.type}">
                                         Your browser does not support the video tag.
-                                    </video>`
-                                }
-                            })
+                                    </video>
+                                    <p>${proof.filename}</p>
+                                    </div>`
+                        else if(isAudio)
+                            return `<div class="p-2"><audio controls>
+                                        <source src="${proof.url}" type="${proof.type}">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <p>${proof.filename}</p>
+                                    </div>`
+                        else
+                            return `<div class="p-2" style="position:relative;text-align:center;"><img width="200" height="200" style="max-width: 200px; max-height: 200px" src="http://35.202.26.112/uploads/blank.png" class="img-thumbnail" alt="Responsive image"><div class="centered"><a href="${proof.url}" target="_blank">${proof.filename} [${proof.type}]</a></div></div>`
+                        })
+                    }
+
+                    let videoHtml = `<div class="col-sm"><p class="sm">No video Url Found</p></div>`
+
+                    if(videoLinks){
+                        videoHtml = ""
+                        videoLinks.forEach(vid => {
+                            if(vid.type == "audio/mpeg"){
+                                videoHtml += `
+                                    <audio controls>
+                                    <source src="${vid.url}" type="audio/mpeg">
+                                </audio>`
+                            } else {
+                                videoHtml += `
+                                <video width="320" height="240" controls>
+                                    <source src="${vid.url}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>`
+                            }
+                        })
+                    }
+
+                    let instructions =  "No Instructions"
+                    if("Instructions" in task){
+                            instructions = task["Instructions"].toString().replace(/\\n/g,"<br>").replace(/\\t/g,"   ")
+                            instructions = instructions.substr(1, instructions.length-2)
+                    }
+
+                    $("#task_line_2").text(task["Task Type (TEXT)"])
+                    $("#task_line_3").html(videoHtml)
+                    $("#task_line_4").html(instructions)
+                    // $("#task_line_5").html("Notes: <i>"+notes+"</i>")
+                    currentNotes = notes.toString()
+                    $("#form_notes").val(notes)
+                    $("#form_recid").attr("value", task["Record Id"])
+                    $("#form_tasktype").attr("value", task["Task Type (TEXT)"])
+                    $("#task_line_6").html(proofOfCompletionHtml)
+                    // $("#task_line_7").html(googleDriveLink)
+
+                    // $("#task_line_7").attr("href",task["Update Task"]["url"])
+                    // let updateFormScriptUrl = `https://api.miniextensions.com/v1/iframe-embed/H5hDBA05pcCmGKRFQQEz.js?absoluteShareUrl=https%3A%2F%2Fapp.miniextensions.com%2Fform%2FH5hDBA05pcCmGKRFQQEz%2F${task["Record Id"]}%3Fprefill_Task%2520Completed%2520(Employee%2520Checkbox)%3Dtrue`
+                    // $.getScript(updateFormScriptUrl)
+
+                    $("#menu").hide();
+                    $("#task").show();
+
+                    $("#update_form").off('submit').submit((e) => {
+                        e.preventDefault()
+                        let tasktype = $("#form_tasktype").val()
+                        let notes = $("#form_notes").val()
+                        let customername = $("#form_customername").val()
+                        let files = $("#form_upload").get(0).files.length
+                        let proofrequired = $("#form_proofrequired").val()
+
+                        if(tasktype.indexOf("Shadow Review") > -1 && customername == ""){
+                            alert("Customer Name is required.")
+                        } else if(files > 20){
+                            alert("The maximum number of files you can upload is 20.")
+                        } else if(notes == currentNotes && files == 0){
+                            alert("Notes and File upload is empty")
+                        } else {
+                            if(proofrequired && files == 0){
+                                alert("Proof is Required.")
+                            } else {
+                                let filesize = $("#form_upload").get(0).files[0].size * 1e-6
+                                if(filesize > 400) alert("File size cannot be more than 400mb. Filsize: "+filesize.toFixed(2))
+                                else e.target.submit()
+                            }
                         }
+                    });
 
-                        let instructions =  "No Instructions"
-                        if("Instructions" in task){
-                                instructions = task["Instructions"].toString().replace(/\\n/g,"<br>").replace(/\\t/g,"   ")
-                                instructions = instructions.substr(1, instructions.length-2)
-                        }
+                    $('#deleteTask').off('click').click(function(){
+                        alert("Delete in Progress");
+                    });
+				},
+                clickEvents: function(){
+                    var self = this;
+                    $(".to-external").on("click", (e) => {
+                        let src = e.target.attributes.href.value
+                        if(!src) return
+                        self.showExternalPage(src)
+                    })
 
-                        $("#task_line_2").text(task["Task Type (TEXT)"])
-                        $("#task_line_3").html(videoHtml)
-                        $("#task_line_4").html(instructions)
-                        // $("#task_line_5").html("Notes: <i>"+notes+"</i>")
-                        currentNotes = notes.toString()
-                        $("#form_notes").val(notes)
-                        $("#form_recid").attr("value", task["Record Id"])
-                        $("#form_tasktype").attr("value", task["Task Type (TEXT)"])
-                        $("#task_line_6").html(proofOfCompletionHtml)
-                        // $("#task_line_7").html(googleDriveLink)
+                    $(".task_button").on("click", (e) => {
+                        let taskRecId = e.target.attributes.recordId.value.split("_")[0];
+                        let task = this.allTasks.filter(task => task.id == taskRecId)[0];
+                        self.loadTask(task["fields"]);
+                    })
+                },
+                showExternalPage: function(src){
+					$("#menu").hide()
+					$("#task").hide();
+                    if(src.indexOf("datastudio") > -1){
+                        // src = `https://datastudio.google.com/u/0/embed/reporting/${src.split("reporting/")[1]}`.replace("params","config")
+                        src = `https://datastudio.google.com/embed/reporting/${src.split("reporting/")[1]}`//.replace("params","config")
+                        let urlSplit = window.location.href.split("?")
+                        let href = urlSplit[0]
+                        let parameters = urlSplit[1].split("&")
+                        let currentUrl = href + "?" + parameters.filter(x => x.indexOf("username") > -1 || x.indexOf("password") > -1).join("&")
+                        $(".exit_external").attr("href",currentUrl)
+                    }
+                    $("#site").attr("src",src)
+                    $("#external").show()
+                }
 
-                        // $("#task_line_7").attr("href",task["Update Task"]["url"])
-                        // let updateFormScriptUrl = `https://api.miniextensions.com/v1/iframe-embed/H5hDBA05pcCmGKRFQQEz.js?absoluteShareUrl=https%3A%2F%2Fapp.miniextensions.com%2Fform%2FH5hDBA05pcCmGKRFQQEz%2F${task["Record Id"]}%3Fprefill_Task%2520Completed%2520(Employee%2520Checkbox)%3Dtrue`
-                        // $.getScript(updateFormScriptUrl)
-
-                        $("#menu").hide()
-                        $("#task").show()
-				}
+                
                 
             }
         })
