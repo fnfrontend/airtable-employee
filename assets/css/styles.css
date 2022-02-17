@@ -56,7 +56,7 @@ a, h5 {color: white;}
 #task_line_4,#task_line_5 {text-align: justify;}
 #form_upload {color: white;}
 
-#password_recovery,#login,#nav,#task,#external,#customername_input {display: none;}
+#password_recovery,#nav,#task,#external,#customername_input {display: none;}
 
 .btn {margin: 5px;text-align: center;display: inline-block;text-overflow: ellipsis;}
 
