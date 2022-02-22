@@ -125,7 +125,7 @@
 				<div class="row text-center">
 					<div class="col">
 						<input type="submit" id="form_submit" value="Update" class="btn btn-block btn-success" />
-                        <a href="Javascript:void(0)" id="deleteTask" class="btn btn-block btn-danger">Delete</a>
+                        <a href="Javascript:void(0)" id="deleteTask" data-id="" class="btn btn-block btn-danger">Delete</a>
 					</div>
 				</div>
 			</form>
@@ -146,7 +146,8 @@
             data() {
                 return {
                     app_id:"appy2wb0mLlSBqFjj",
-                    app_key:"keyM7E4FM1zHFbQsw",
+                    //app_key:"keyCyC3eV9LMF4LmF",
+                    app_key: "keyCyC3eV9LMF4LmF",
                     allEmployees: [],
                     allTasks: []
                 }
@@ -173,6 +174,8 @@
                         var data = response.data.records;
                         self.allTasks = data;
                         self.loadPage();
+
+                        console.log("Tasks", self.allTasks[0].fields);
                         //console.log(data);
 
                     }).catch(function(error){
@@ -363,7 +366,10 @@
                         ("Task Type Sales" in task["fields"] ? task["fields"]["Task Type Sales"] == "Upload Weekly Sales Video" : false)
                     )
                 },
-                loadTask: function(task) {
+                loadTask: function(task, recordId) {
+
+                    var self = this;
+                    
                     if("Task Type (TEXT)" in task){
                         if(task["Task Type (TEXT)"].indexOf("Shadow Review") > -1){
                             $("#customername_input").show()
@@ -465,7 +471,7 @@
                     // $("#task_line_7").attr("href",task["Update Task"]["url"])
                     // let updateFormScriptUrl = `https://api.miniextensions.com/v1/iframe-embed/H5hDBA05pcCmGKRFQQEz.js?absoluteShareUrl=https%3A%2F%2Fapp.miniextensions.com%2Fform%2FH5hDBA05pcCmGKRFQQEz%2F${task["Record Id"]}%3Fprefill_Task%2520Completed%2520(Employee%2520Checkbox)%3Dtrue`
                     // $.getScript(updateFormScriptUrl)
-
+                    $("#deleteTask").attr("data-id", recordId)
                     $("#menu").hide();
                     $("#task").show();
 
@@ -495,7 +501,26 @@
                     });
 
                     $('#deleteTask').off('click').click(function(){
-                        alert("Delete in Progress");
+                        var recordId = $(this).attr('data-id');
+                        alert("Delete in Progress" + recordId);
+
+                        // Init variables
+                        var tableName = "Data Input";
+                        
+                        axios.delete(`https://api.airtable.com/v0/${self.app_id}/${tableName}?records[]=${recordId}`,
+                        { 
+                            //params: { records: [recordId] },
+                            //params: { view: "Grid view" },
+                            headers: { Authorization: "Bearer "+self.app_key } 
+                        }).then(function(response){
+                            
+                            console.log("Delete Success", response);
+                            window.location.reload();
+
+                        }).catch(function(error){
+                            console.log(error);
+                        })
+
                     });
 				},
                 clickEvents: function(){
@@ -509,7 +534,7 @@
                     $(".task_button").on("click", (e) => {
                         let taskRecId = e.target.attributes.recordId.value.split("_")[0];
                         let task = this.allTasks.filter(task => task.id == taskRecId)[0];
-                        self.loadTask(task["fields"]);
+                        self.loadTask(task["fields"], task.id);
                     })
                 },
                 showExternalPage: function(src){
