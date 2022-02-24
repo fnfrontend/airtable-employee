@@ -167,7 +167,7 @@
                     
                     axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
                     { 
-                        params: { view: "Grid view" },
+                        params: { view: "Clean Up" },
                         headers: { Authorization: "Bearer "+this.app_key } 
                     }).then(function(response){
                         
@@ -190,7 +190,7 @@
                     
                     axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
                     { 
-                        params: { view: "Grid view" },
+                        params: { view: "Active" },
                         headers: { Authorization: "Bearer "+this.app_key } 
                     }).then(function(response){
                         

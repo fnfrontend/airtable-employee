@@ -101,11 +101,12 @@
                     
                     axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
                     { 
-                        params: { view: "Grid view" },
+                        params: { view: "Active" },
                         headers: { Authorization: "Bearer "+this.app_key } 
                     }).then(function(response){
                         
                         var data = response.data.records;
+                        console.log(data);
 
                         var groupBy = function(xs) {
                             return xs.reduce(function(rv, x) {
