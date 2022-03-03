@@ -61,7 +61,7 @@
                         <td class="px-2">{{emp.fields['Name']}}</td>
                         <td class="px-2 ">{{emp.fields['Email']}}</td>
                         <!-- <td class="px-2 text-center"><a v-show="team == 'Techs'" v-bind:href="emp.fields['Training App']['url']" target="_blank" class="btn btn-sm btn-secondary">Training App</a></td> -->
-                        <td class="px-2 text-center"><a v-show="team == 'Techs'" href="tasks.html"  class="btn btn-sm btn-secondary">Training App</a></td>
+                        <td class="px-2 text-center"><a v-show="team == 'Techs'" v-bind:href="'tasks.html?empId=' + emp.id + '&username=' + emp.fields['Name'] + '&pincode=' + emp.fields['Pincode']" class="btn btn-sm btn-secondary">Training App</a></td>
                     </tr>
                 </tbody>
             </table>
@@ -76,6 +76,7 @@
     
 
     <script type="text/javascript">
+
         var app = new Vue({
             el: '#app',
             data() {

@@ -17,7 +17,7 @@
     <header>
         <nav class="navbar sticky-top navbar-dark bg-dark">
             <div class="container bg-dark">
-                <a class="navbar-brand kindred-logo" href=""><img height="20rem" src="assets/images/logo.png" /></a>
+                <a class="navbar-brand kindred-logo" href="index.html"><img height="20rem" src="assets/images/logo.png" /></a>
 
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -40,8 +40,12 @@
                  
     <div class="container pt-4" id="app">
         
-        <div class="loading text-center py-5" v-show="allTasks.length == 0">
+        <div class="loading text-center py-5" v-show="isLoading">
             <img src="./assets/images/loading.gif" alt="Loading..." height="50">
+        </div>
+
+        <div class="loading text-center py-5" v-show="allTasks.length == 0 && !isLoading">
+            <h5 class="text-white">No Data Available</h5>
         </div>
 
         <div id="menu"></div>
@@ -141,6 +145,10 @@
     
 
     <script type="text/javascript">
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+
+
         var app = new Vue({
             el: '#app',
             data() {
@@ -149,7 +157,8 @@
                     //app_key:"keyCyC3eV9LMF4LmF",
                     app_key: "keyCyC3eV9LMF4LmF",
                     allEmployees: [],
-                    allTasks: []
+                    allTasks: [],
+                    isLoading: false
                 }
             },
             mounted: function(){
@@ -161,21 +170,32 @@
             methods: {
                 getAllTasks: function(){
                     
+                    this.isLoading = true;
+
                     // Init variables
                     var self = this
                     var tableName = "Data Input";
                     
                     axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
                     { 
-                        params: { view: "Clean Up" },
+                        params: { view: "Tasks To Complete TECHS", filterByFormula: '{Task Completed By} != BLANK()' },
                         headers: { Authorization: "Bearer "+this.app_key } 
                     }).then(function(response){
                         
                         var data = response.data.records;
-                        self.allTasks = data;
+                        console.log("data", data);
+                        let employeeTasks = data.filter((task) => {
+                            console.log(task.fields["Task Completed By"]);
+                            return task.fields["Task Completed By"].indexOf(params.empId) > -1;
+                        });
+                        console.log(params.empId);
+                        console.log("employeeData", data.filter((task) => task.fields["Task Completed By"].indexOf(params.empId) > -1));
+                        self.allTasks = employeeTasks;
+
+                        
                         self.loadPage();
 
-                        console.log("Tasks", self.allTasks[0].fields);
+                        //console.log("Tasks", self.allTasks[0].fields);
                         //console.log(data);
 
                     }).catch(function(error){
@@ -190,7 +210,7 @@
                     
                     axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
                     { 
-                        params: { view: "Active" },
+                        params: { view: "Active", filterByFormula: `AND(FIND("${params.username}",{Name}) > 0, {Pincode} = '${params.pincode}')` },
                         headers: { Authorization: "Bearer "+this.app_key } 
                     }).then(function(response){
                         
@@ -221,6 +241,7 @@
                 },
                 loadPage: function() {
                     if(this.allEmployees.length == 0 && this.allTasks == 0){
+                        this.isLoading = false;
                         return false;
                     }
 
@@ -343,6 +364,7 @@
                     
                     $("#menu").html(htmlString);
                     this.clickEvents();
+                    this.isLoading = false;
                 },
                 updateExternally: function(task) {
                     
