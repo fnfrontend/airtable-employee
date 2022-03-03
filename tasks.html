@@ -158,7 +158,8 @@
                     app_key: "keyCyC3eV9LMF4LmF",
                     allEmployees: [],
                     allTasks: [],
-                    isLoading: false
+                    isLoading: false,
+                    taskOffset: null
                 }
             },
             mounted: function(){
@@ -178,22 +179,24 @@
                     
                     axios.get(`https://api.airtable.com/v0/${this.app_id}/${tableName}`,
                     { 
-                        params: { view: "Tasks To Complete TECHS", filterByFormula: '{Task Completed By} != BLANK()' },
+                        params: { view: "Tasks To Complete TECHS", filterByFormula: '{Task Completed By} != BLANK()', offset: self.taskOffset},
                         headers: { Authorization: "Bearer "+this.app_key } 
                     }).then(function(response){
                         
                         var data = response.data.records;
-                        console.log("data", data);
                         let employeeTasks = data.filter((task) => {
-                            console.log(task.fields["Task Completed By"]);
                             return task.fields["Task Completed By"].indexOf(params.empId) > -1;
                         });
-                        console.log(params.empId);
-                        console.log("employeeData", data.filter((task) => task.fields["Task Completed By"].indexOf(params.empId) > -1));
-                        self.allTasks = employeeTasks;
-
+                        self.allTasks = [].concat(self.allTasks, employeeTasks);
+                        self.taskOffset = response.data.offset;
                         
-                        self.loadPage();
+                        if(response.data.records.length == 100){
+                            self.getAllTasks();
+                        }
+                        else {
+                            console.log("loadPage", self.allTasks);
+                            self.loadPage();
+                        }
 
                         //console.log("Tasks", self.allTasks[0].fields);
                         //console.log(data);
